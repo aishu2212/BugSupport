@@ -80,4 +80,3 @@ wcwidth==0.2.13
 webencodings==0.5.1
 xhtml2pdf==0.2.15
 zope.interface==6.3
-django-nose==1.4.7
