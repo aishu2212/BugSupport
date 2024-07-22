@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Bug Report{% endblock %}
+
+{% block content %}
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Create Bug Report</title>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script>
+            $(document).ready(function() {
+                $('.editable').on('click', function() {
+                    $(this).toggleClass('editing');
+                    var input = $(this).find('input, textarea');
+                    input.prop('readonly', !input.prop('readonly')).toggleClass('active');
+                });
+                $('#id_title, #id_description, #id_expected_result, #id_actual_result, #id_steps_followed, #id_browser, #id_additional_information').on('click', function() {
+                    $(this).prop('readonly', !$(this).prop('readonly')).toggleClass('active');
+                });
+            });
+        </script>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                background-color: #f0f0f0;
+            }
+
+            .container {
+                max-width: 800px;
+                margin: 50px auto;
+                padding: 20px;
+                background-color: #fff;
+                border-radius: 10px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+
+            h2 {
+                margin-bottom: 20px;
+                text-align: center;
+            }
+
+            form {
+                margin-bottom: 20px;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 5px;
+            }
+
+            input[type="text"],
+            input[type="number"],
+            select,
+            textarea {
+                width: 100%;
+                padding: 8px;
+                margin-bottom: 10px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                box-sizing: border-box;
+            }
+
+            textarea {
+                height: 100px;
+                resize: vertical;
+            }
+
+            .section {
+                margin-bottom: 20px;
+            }
+
+            .editable {
+                position: relative;
+            }
+
+            .editable.active {
+                border: 1px solid #000;
+            }
+
+            .editable textarea,
+            .editable input[type="text"] {
+                width: calc(100% - 16px);
+                padding: 8px;
+                margin-bottom: 10px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                box-sizing: border-box;
+                resize: none;
+            }
+
+            .editing {
+                background-color: #f4f4f4;
+            }
+
+            .attachments input[type="file"] {
+                margin-bottom: 10px;
+            }
+
+            button[type="submit"] {
+                padding: 10px 20px;
+                background-color: #4CAF50;
+                color: #fff;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+
+            button[type="submit"]:hover {
+                background-color: #45a049;
+            }
+        </style>
+    </head>
+    <body>
+    <div class="container">
+        <h2>Create Bug Report</h2>
+        <form id="bug-form" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="section">
+                <h3>Basic Information</h3>
+                <label for="id_title">Title:</label>
+                <div class="editable">
+                    <textarea id="id_title" name="title">{{ form.title.value }}</textarea>
+                </div>
+                <label for="id_description">Description:</label>
+                <div class="editable">
+                    <textarea id="id_description" name="description">{{ form.description.value }}</textarea>
+                </div>
+            </div>
+            <label for="id_project">Project:</label><br>
+        <select id="id_project" name="project">
+        {% for choice in form.project.field.choices %}
+        <option value="{{ choice.0 }}" {% if form.project.value == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+        {% endfor %}
+        </select><br>
+            <div class="section">
+                <h3>Details</h3>
+                <input type="hidden" id="id_raised_by" name="raised_by" value="{{ request.user.id }}">
+
+                {% if request.user.is_staff or request.user.is_developer or request.user.is_tester %}
+                    <label for="id_status">Status:</label>
+                    <select id="id_status" name="status">
+                        {% for choice in form.status.field.choices %}
+                            <option value="{{ choice.0 }}" {% if form.status.value == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                        {% endfor %}
+                    </select>
+                    <label for="id_priority">Priority:</label>
+                    <select id="id_priority" name="priority">
+                        {% for choice in form.priority.field.choices %}
+                            <option value="{{ choice.0 }}" {% if form.priority.value == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if form.priority.errors %}
+                   <ul class="errorlist">
+                      {% for error in form.priority.errors %}
+                          <li>{{ error }}</li>
+                      {% endfor %}
+                   </ul>
+                {% endif %}
+                {% endif %}
+
+                {% if request.user.is_staff or request.user.is_developer or request.user.is_tester %}
+                    <label for="id_assigned_to">Assigned To:</label>
+                    <select id="id_assigned_to" name="assigned_to">
+                        {% for user in filtered_users %}
+                            {% if user.is_staff or user.is_developer or user.is_tester %}
+                                <option value="{{ user.id }}">{{ user.username }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    <label for="id_effort">Effort (in hours):</label>
+                    <input type="number" id="id_effort" name="effort" min="0" step="0.01">
+                    {% if form.effort.errors %}
+                   <ul class="errorlist">
+                      {% for error in form.effort.errors %}
+                          <li>{{ error }}</li>
+                      {% endfor %}
+                   </ul>
+                {% endif %}
+                {% endif %}
+
+                <label for="id_nature_of_bug">Nature of Bug:</label>
+                <select id="id_nature_of_bug" name="nature_of_bug">
+                    {% for choice in form.nature_of_bug.field.choices %}
+                        <option value="{{ choice.0 }}" {% if form.nature_of_bug.value == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                    {% endfor %}
+                </select>
+                <label for="id_expected_result">Expected Result:</label>
+                <div class="editable">
+                    <textarea id="id_expected_result" name="expected_result">{{ form.expected_result.value }}</textarea>
+                </div>
+                <label for="id_actual_result">Actual Result:</label>
+                <div class="editable">
+                    <textarea id="id_actual_result" name="actual_result">{{ form.actual_result.value }}</textarea>
+                </div>
+                <label for="id_frequency">Frequency:</label>
+                <div class="editable">
+                    <input type="number" id="id_frequency" name="frequency" value="{{ form.frequency.value }}">
+                </div>
+                {% if form.frequency.errors %}
+                   <ul class="errorlist">
+                      {% for error in form.frequency.errors %}
+                          <li>{{ error }}</li>
+                      {% endfor %}
+                   </ul>
+                {% endif %}
+                <label for="id_steps_followed">Steps Followed:</label>
+                <div class="editable">
+                    <textarea id="id_steps_followed" name="steps_followed">{{ form.steps_followed.value }}</textarea>
+                </div>
+                <label for="id_always_sometimes">Always/Sometimes:</label>
+                <select id="id_always_sometimes" name="always_sometimes">
+                    {% for choice in form.always_sometimes.field.choices %}
+                        <option value="{{ choice.0 }}" {% if form.always_sometimes.value == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                    {% endfor %}
+                </select>
+                <label for="id_browser">Browser:</label>
+                <div class="editable">
+                    <input type="text" id="id_browser" name="browser" value="{{ form.browser.value }}">
+                </div>
+                <label for="id_additional_information">Additional Information:</label>
+                <div class="editable">
+                    <input type="text" id="id_additional_information" name="additional_information" value="{{ form.additional_information.value }}">
+                </div>
+                <label for="id_os">OS:</label>
+                <div class="editable">
+                    <input type="text" id="id_os" name="os" value="{{ form.os.value }}">
+                </div>
+            </div>
+
+            <div class="section attachments">
+                <h3>Attachments</h3>
+                <label for="id_images_log_files">Images/Log Files:</label>
+                <input type="file" id="id_images_log_files" name="images_log_files">
+            </div>
+
+            <h3>Add a Comment</h3>
+            <form id="comment-form" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ comment_form.as_p }}
+                <button type="submit" name="comment_form">Submit</button>
+            </form>
+        </form>
+    </div>
+    </body>
+    </html>
+{% endblock %}

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bug Updated: {{ bug.id }}</title>
+</head>
+<body>
+    <h1>Bug Updated: {{ bug.id }}</h1>
+    <p>The following bug has been updated:</p>
+    <p>Title: {{ bug.title }}</p>
+    <p>Description: {{ bug.description }}</p>
+    <p>Raised By: {{ bug.raised_by }}</p>
+    <p>Assigned to: {{ bug.assigned_to }}</p>
+    {% if latest_comment %}
+    <p>Latest Comment:</p>
+    <p>{{ latest_comment.author }} said: {{ latest_comment.text }}</p>
+    {% endif %}
+</body>
+</html>

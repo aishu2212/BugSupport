@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+
+{% block title %}Bug Detail{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bug Detail</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        button[type="submit"],
+        .export-btn {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        button[type="submit"]:hover,
+        .export-btn:hover {
+            background-color: #45a049;
+        }
+
+        #bugImage {
+            max-width: 300px;
+            height: auto;
+            display: block;
+            margin: 10px auto;
+        }
+
+        #commentImage {
+            max-width: 300px;
+            height: auto;
+            display: block;
+            margin: 10px auto;
+        }
+
+        .similar-bugs {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .similar-bugs h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .similar-bugs ul {
+            list-style-type: disc;
+            padding: 0;
+            margin-left: 20px;
+        }
+
+        .similar-bugs li {
+            margin-bottom: 10px;
+        }
+        .export-btn-container {
+            position: relative;
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .export-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+<div class="export-btn-container">
+    <a href="{% url 'export_bug_to_pdf' bug.id %}" class="export-btn">Export Bug as PDF</a>
+</div>
+
+<div class="container">
+    <h2>{{ bug.title }}</h2>
+    <h6>Raised By: {{ bug.raised_by }}</h6>
+    <h6>Raised By Email: {{ bug.raised_by.email }}</h6><br>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="id_title">Title:</label>
+            {{ form.title }}
+        </div>
+        <div class="form-group">
+            <label for="id_description">Description:</label>
+            {{ form.description }}
+        </div>
+    
+        {% if request.user.is_staff or request.user.is_developer or request.user.is_tester %}
+        <div class="form-group">
+            <label for="id_status">Status:</label>
+            {{ form.status }}
+        </div>
+        <h5>Similar Bugs</h5>
+        <ul>
+            {% for similar_bug in similar_bugs %}
+                <li>
+                    <h6><a href="{% url 'bug_detail' similar_bug.id %}">{{ similar_bug.title }}</a></h6>
+                    <p>{{ similar_bug.description }}</p>
+                    <!-- Render other details of the similar bug -->
+                </li>
+            {% empty %}
+                <p>No similar bugs found.</p>
+            {% endfor %}
+        </ul>
+        <div class="form-group">
+            <label for="id_priority">Priority:</label>
+            {{ form.priority }}
+        </div>
+        <div class="form-group">
+            <label for="id_assigned_to">Assigned To:</label>
+            {{ form.assigned_to }}
+        </div>
+        <div class="form-group">
+            <label for="id_effort">Effort (in hours):</label>
+            {{ form.effort }}
+        </div>
+        {% endif %}
+        <div class="form-group">
+            <label for="id_project">Project:</label>
+            {{ form.project }}
+        </div>
+        <div class="form-group" style="display: none;">  <!-- Hide the field -->
+            <label for="id_raised_by">Raised By:</label>
+            <input type="hidden" id="id_raised_by" name="raised_by" value="{{ request.user.id }}">
+        </div>
+        <div class="form-group">
+            <label for="id_nature_of_bug">Nature of Bug:</label>
+            {{ form.nature_of_bug }}
+        </div>
+        <div class="form-group">
+            <label for="id_expected_result">Expected Result:</label>
+            {{ form.expected_result }}
+        </div>
+        <div class="form-group">
+            <label for="id_actual_result">Actual Result:</label>
+            {{ form.actual_result }}
+        </div>
+        <div class="form-group">
+            <label for="id_frequency">Frequency:</label>
+            {{ form.frequency }}
+        </div>
+        <div class="form-group">
+            <label for="id_steps_followed">Steps Followed:</label>
+            {{ form.steps_followed }}
+        </div>
+        <div class="form-group">
+            <label for="id_always_sometimes">Always/Sometimes:</label>
+            {{ form.always_sometimes }}
+        </div>
+        <div class="form-group">
+            <label for="id_browser">Browser:</label>
+            {{ form.browser }}
+        </div>
+        <div class="form-group">
+            <label for="id_os">OS:</label>
+            {{ form.os }}
+        </div>
+        <div class="form-group">
+            <label for="id_images_log_files">Image/File:</label>
+            {{ form.images_log_files }}
+        </div>
+        {% if bug.images_log_files %}
+        <img id="bugImage" src="{{ bug.images_log_files.url }}" alt="Bug Screenshot">
+        {% else %}
+        <p>No image available</p>
+        {% endif %}
+        <div class="form-group">
+            <label for="id_additional_information">Additional Information:</label>
+            {{ form.additional_information }}
+        </div>
+    
+        <h3>Add a Comment</h3>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ comment_form.as_p }}
+        
+        <div class="form-group">
+            <label for="id_comments">Comments:</label>
+            {% for comment in bug.comments.all %}
+                <div class="comment">
+                    <p><strong>{{ comment.author }}</strong> - {{ comment.created_at|date:"D, d M Y H:i:s" }}</p>
+                    <p>{{ comment.text }}</p>
+                    {% if comment.image %}
+                    <img id='commentImage' src="{{ comment.image.url }}" alt="Comment Image">
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <button type="submit" name="comment_form">Update Bug</button>
+    </form>
+    </form>   
+</body>
+</html>
+{% endblock %}

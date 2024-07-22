@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+{% block title %}Bug Dashboard{% endblock %}
+{% block content %}
+<div>
+    <h2>Bug Overview</h2>
+    <p>Total Bugs: {{ total_bugs }}</p>
+</div>
+<form method="GET" action="">
+    <label for="bug_filter">Filter:</label>
+    <select name="bug_filter" id="bug_filter">
+        <option value="all">All Bugs</option>
+        <option value="raised_by" {% if request.GET.bug_filter == 'raised_by' %} selected {% endif %}>Bugs Raised By Me</option>
+        <option value="assigned_to" {% if request.GET.bug_filter == 'assigned_to' %} selected {% endif %}>Bugs Assigned To Me</option>
+    </select>
+    <button type="submit">Apply</button>
+</form>
+<div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+    <div style="width: 48%;">
+        <h2>Bug Priority</h2>
+        <canvas id="bugPriorityChart" width="400" height="400"></canvas>
+    </div>
+    <div style="width: 48%;">
+        <h2>Bug Status</h2>
+        <canvas id="bugStatusChart" width="400" height="400"></canvas>
+    </div>
+</div>
+
+<div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+    <div style="width: 48%;">
+        <h2>Project</h2>
+        <canvas id="bugProjectChart" width="400" height="400"></canvas>
+    </div>
+    <div style="width: 48%;">
+        <h2>Bug Category Overview</h2>
+        <canvas id="bugCategoryChart" width="400" height="400"></canvas>
+    </div>
+</div>
+
+<div>
+    <h2>Time-Based Bug Analysis</h2>
+    <form method="GET" action="">
+        <label for="month">Select Month:</label>
+        <select name="month" id="month">
+            <option value="">----</option>
+            <option value="1" {% if request.GET.month == '1' %} selected {% endif %}>January</option>
+            <option value="2" {% if request.GET.month == '2' %} selected {% endif %}>February</option>
+            <option value="3" {% if request.GET.month == '3' %} selected {% endif %}>March</option>
+            <option value="4" {% if request.GET.month == '4' %} selected {% endif %}>April</option>
+            <option value="5" {% if request.GET.month == '5' %} selected {% endif %}>May</option>
+            <option value="6" {% if request.GET.month == '6' %} selected {% endif %}>June</option>
+            <option value="7" {% if request.GET.month == '7' %} selected {% endif %}>July</option>
+            <option value="8" {% if request.GET.month == '8' %} selected {% endif %}>August</option>
+            <option value="9" {% if request.GET.month == '9' %} selected {% endif %}>September</option>
+            <option value="10" {% if request.GET.month == '10' %} selected {% endif %}>October</option>
+            <option value="11" {% if request.GET.month == '11' %} selected {% endif %}>November</option>
+            <option value="12" {% if request.GET.month == '12' %} selected {% endif %}>December</option>
+        </select>
+        <label for="year">Select Year:</label>
+        <select name="year" id="year">
+            <option value="">----</option>
+            <option value="2022" {% if request.GET.year == '2022' %} selected {% endif %}>2022</option>
+            <option value="2023" {% if request.GET.year == '2023' %} selected {% endif %}>2023</option>
+            <option value="2024" {% if request.GET.year == '2024' %} selected {% endif %}>2024</option>
+        </select>
+        
+        
+        <label for="project">Project:</label>
+<select name="project" id="project">
+    <option value="" {% if not request.GET.project %} selected {% endif %}>All</option>
+    <option value="Electronic Purchase App" {% if request.GET.project == 'Electronic Purchase App' %} selected {% endif %}>Electronic Purchase App</option>
+    <option value="E-Reader App" {% if request.GET.project == 'E-Reader App' %} selected {% endif %}>E-Reader App</option>
+    <option value="Resume Builder" {% if request.GET.project == 'Resume Builder' %} selected {% endif %}>Resume Builder</option>
+    <option value="Video Editor" {% if request.GET.project == 'Video Editor' %} selected {% endif %}>Video Editor</option>
+</select>
+
+<label for="priority">Priority:</label>
+<select name="priority" id="priority">
+    <option value="" {% if not request.GET.priority %} selected {% endif %}>All</option>
+    <option value="High" {% if request.GET.priority == 'High' %} selected {% endif %}>High</option>
+    <option value="Medium" {% if request.GET.priority == 'Medium' %} selected {% endif %}>Medium</option>
+    <option value="Low" {% if request.GET.priority == 'Low' %} selected {% endif %}>Low</option>
+</select>
+
+<label for="nature_of_bug">Nature of Bug:</label>
+<select name="nature_of_bug" id="nature_of_bug">
+    <option value="" {% if not request.GET.nature_of_bug %} selected {% endif %}>All</option>
+    <option value="UI/UX" {% if request.GET.nature_of_bug == 'UI/UX' %} selected {% endif %}>UI/UX</option>
+    <option value="Browser" {% if request.GET.nature_of_bug == 'Browser' %} selected {% endif %}>Browser</option>
+    <option value="Internet" {% if request.GET.nature_of_bug == 'Internet' %} selected {% endif %}>Internet</option>
+    <option value="Performance" {% if request.GET.nature_of_bug == 'Performance' %} selected {% endif %}>Performance</option>
+    <option value="Crashing" {% if request.GET.nature_of_bug == 'Crashing' %} selected {% endif %}>Crashing</option>
+    <option value="Not Sure" {% if request.GET.nature_of_bug == 'Not Sure' %} selected {% endif %}>Not Sure</option>
+</select>
+       
+
+ <button type="submit">Filter</button>
+    </form>
+    <canvas id="bugTimeBasedChart" width="400" height="400"></canvas>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+<script>
+    
+    var bugPriorityChartCtx = document.getElementById('bugPriorityChart').getContext('2d');
+    var bugPriorityChart = new Chart(bugPriorityChartCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ bug_priority_labels | safe }},
+            datasets: [{
+                label: 'Number of Bugs',
+                data: {{ bug_priority_data | safe }},
+                backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    var bugStatusChartCtx = document.getElementById('bugStatusChart').getContext('2d');
+    var bugStatusChart = new Chart(bugStatusChartCtx, {
+        type: 'pie',
+        data: {
+            labels: {{ bug_status_labels | safe }},
+            datasets: [{
+                label: 'Bug Status',
+                data: {{ bug_status_data | safe }},
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 206, 86, 0.6)',
+                    'rgba(75, 192, 192, 0.6)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: false
+        }
+    });
+    var bugProjectChartCtx = document.getElementById('bugProjectChart').getContext('2d');
+    var bugProjectChart = new Chart(bugProjectChartCtx, {
+        type: 'pie',
+        data: {
+            labels: {{ project_labels | safe }},
+            datasets: [{
+                label: 'Bug Counts by Project',
+                data: {{ project_data | safe }},
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 206, 86, 0.6)',
+                    'rgba(75, 192, 192, 0.6)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: false
+        }
+    });
+    var bugCategoryChartCtx = document.getElementById('bugCategoryChart').getContext('2d');
+    var bugCategoryChart = new Chart(bugCategoryChartCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ category_labels | safe }},
+            datasets: [{
+                label: 'Bug Counts by Category',
+                data: {{ category_data | safe }},
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: false,
+            scales: {
+                x: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    var bugTimeBasedChartCtx = document.getElementById('bugTimeBasedChart').getContext('2d');
+    var bugTimeBasedChart = new Chart(bugTimeBasedChartCtx, {
+        type: 'line',
+        data: {
+            labels: {{ date_labels | safe }},
+            datasets: [{
+                label: 'Bugs Raised',
+                data: {{ bug_counts | safe }},
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: false,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Number of Bugs'
+                    },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
