@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <style>
+        .card-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .card {
+            margin: 10px;
+            padding: 30px;
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            background-color: #f0f0f0;
+            width: 300px;
+            text-align: center;
+        }
+
+        .card-link {
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .profile-link { color: #4CAF50; }
+        .raise-bug-link { color: #2196F3; }
+        .create-dev-link { color: #FFC107; }
+        .create-tester-link { color: #FF5722; }
+        .all-bugs-link { color: #9C27B0; }
+        .bug-analytics-link { color: #795548; }
+    </style>
+
+    <h3>User Dashboard</h3>
+    <div class="card-container">
+        <div class="card">
+            <a href="{% url 'user_profile' %}" class="card-link profile-link">Profile</a>
+        </div>
+        <div class="card">
+            <a href="{% url 'bug_create' %}" class="card-link raise-bug-link">Raise a Bug</a>
+        </div>
+        {% if request.user.is_staff %}
+            <div class="card">
+                <a href="{% url 'create_developer' %}" class="card-link create-dev-link">Create Developer</a>
+            </div>
+            <div class="card">
+                <a href="{% url 'create_tester' %}" class="card-link create-tester-link">Create Tester</a>
+            </div>
+            <div class="card">
+                <a href="{% url 'bug_dashboard' %}" class="card-link all-bugs-link">All Bugs</a>
+            </div>
+            <div class="card">
+                <a href="{% url 'bug_analytics' %}" class="card-link bug-analytics-link">Bug Analytics</a>
+            </div>
+        {% elif request.user.is_developer or request.user.is_tester %}
+            <div class="card">
+                <a href="{% url 'bug_dashboard' %}" class="card-link all-bugs-link">All Bugs</a>
+            </div>
+            <div class="card">
+                <a href="{% url 'bug_analytics' %}" class="card-link bug-analytics-link">Bug Analytics</a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

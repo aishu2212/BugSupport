@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    <title>Bug Dashboard</title>
+{% endblock %}
+
+{% block content %}
+    <h2>Bug Dashboard</h2>
+
+    <form method="get">
+        <input type="text" name="q" placeholder="Search">
+        <button type="submit">Search</button><br>
+    </form>
+
+    <form method="get">
+        <br><label>Status:</label>
+        <select name="status">
+            <option value="">All</option>
+            <option value="Open" {% if status_filter == 'Open' %} selected {% endif %}>Open</option>
+            <option value="In Progress" {% if status_filter == 'In Progress' %} selected {% endif %}>In Progress</option>
+            <option value="Testing" {% if status_filter == 'Testing' %} selected {% endif %}>Testing</option>
+            <option value="Closed" {% if status_filter == 'Closed' %} selected {% endif %}>Closed</option>
+            <option value="Held" {% if status_filter == 'Held' %} selected {% endif %}>Held</option>
+        </select>
+
+        <label>Assigned To:</label>
+        <select name="assigned_to">
+            <option value="">All</option>
+            {% for user in assigned_users %}
+                <option value="{{ user.username }}" {% if assigned_to_filter == user.username %} selected {% endif %}>{{ user.username }}</option>
+            {% endfor %}
+        </select>
+
+        <label>Priority:</label>
+        <select name="priority">
+            <option value="">All</option>
+            <option value="Low" {% if priority_filter == 'Low' %} selected {% endif %}>Low</option>
+            <option value="Medium" {% if priority_filter == 'Medium' %} selected {% endif %}>Medium</option>
+            <option value="High" {% if priority_filter == 'High' %} selected {% endif %}>High</option>
+        </select>
+        
+        <label>Project:</label>
+     <select name="project">
+        <option value="" {% if not request.GET.project %} selected {% endif %}>All</option>
+        <option value="Electronic Purchase App" {% if request.GET.project == 'Electronic Purchase App' %} selected {% endif %}>Electronic Purchase App</option>
+        <option value="E-Reader App" {% if request.GET.project == 'E-Reader App' %} selected {% endif %}>E-Reader App</option>
+        <option value="Resume Builder" {% if request.GET.project == 'Resume Builder' %} selected {% endif %}>Resume Builder</option>
+        <option value="Video Editor" {% if request.GET.project == 'Video Editor' %} selected {% endif %}>Video Editor</option>
+    </select><br>
+    
+    <label>Nature of Bug:</label>
+    <select name="nature_of_bug">
+        <option value="" {% if not request.GET.nature_of_bug %} selected {% endif %}>All</option>
+        <option value="UI/UX" {% if request.GET.nature_of_bug == 'UI/UX' %} selected {% endif %}>UI/UX</option>
+        <option value="Browser" {% if request.GET.nature_of_bug == 'Browser' %} selected {% endif %}>Browser</option>
+        <option value="Internet" {% if request.GET.nature_of_bug == 'Internet' %} selected {% endif %}>Internet</option>
+        <option value="Performance" {% if request.GET.nature_of_bug == 'Performance' %} selected {% endif %}>Performance</option>
+        <option value="Crashing" {% if request.GET.nature_of_bug == 'Crashing' %} selected {% endif %}>Crashing</option>
+        <option value="Not Sure" {% if request.GET.nature_of_bug == 'Not Sure' %} selected {% endif %}>Not Sure</option>
+    </select>
+
+        <label>Created From:</label> 
+        <input type="date" id="created-from-input" name="created_from" value="{{ created_at_filter }}" /> <!-- Display month with year -->
+        
+        <label>Updated From:</label> 
+        <input type="date" id="updated-from-input" name="updated_from" value="{{ updated_at_filter}}" /> <!-- Display month with year -->
+        
+
+        <button type="submit">Apply Filters</button>
+    </form>
+
+    <div class="table-container">
+        <table class="bug-table">
+            <thead>
+                <tr>
+                    <th>Bug ID</th>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Assigned To</th>
+                    <th>Priority</th>
+                    <th>Project</th>
+                    <th>Nature of Bug</th>
+                    <th>Created At</th>
+                    <th>Updated At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bug in bugs %}
+                <tr>
+                    <td>{{ bug.id }}</td>
+                    <td><a href="{% url 'bug_detail' bug.id %}">{{ bug.title }}</a></td>
+                    <td>{{ bug.status }}</td>
+                    <td>
+                        {% if bug.assigned_to %}
+                            {{ bug.assigned_to.username }}
+                        {% else %}
+                            None
+                        {% endif %}
+                    </td>
+                    <td>{{ bug.priority }}</td>
+                    <td>{{ bug.project }}</td>
+                    <td>{{ bug.nature_of_bug }}</td>
+                    <td>{{ bug.created_at | date:"F d, Y H:i:s" }}</td> <!-- Format to display full date and time -->
+                    <td>{{ bug.updated_at | date:"F d, Y H:i:s" }}</td> <!-- Format to display full date and time -->
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">No bugs found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <style>
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .bug-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .bug-table th, .bug-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .bug-table th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+
+        .bug-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+    <script>
+        // Get the value of created_from from the query string
+        const urlParams = new URLSearchParams(window.location.search);
+        const createdFrom = urlParams.get('created_from');
+
+        // Set the value of the created_from input field
+        const createdFromInput = document.getElementById('created-from-input');
+        if (createdFrom) {
+            createdFromInput.value = createdFrom;
+        }
+        const updatedFrom = urlParams.get('updated_from');
+
+        // Set the value of the created_from input field
+        const updatedFromInput = document.getElementById('updated-from-input');
+        if (updatedFrom) {
+            updatedFromInput.value = updatedFrom;
+        }
+    </script>
+{% endblock %}

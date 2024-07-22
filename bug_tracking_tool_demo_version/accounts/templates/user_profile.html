@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% block title %}User Profile{% endblock %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Profile</title>
+    <style>
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .bug-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .bug-table th, .bug-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .bug-table th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+
+        .bug-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+<h3>User Profile</h3>
+
+<form method="get">
+    <h4>Bugs Raised by {{ user.username }}</h4>
+    <label for="raised_search_input">Search:</label>
+    <input type="text" id="raised_search_input" name="raised_search_query" placeholder="Search by title/description/ID" value="{{ request.GET.raised_search_query }}">
+    
+    <label for="raised_status_filter">Status:</label>
+    <select id="raised_status_filter" name="raised_status">
+        <option value="" {% if not request.GET.raised_status %} selected {% endif %}>All</option>
+        <option value="Open" {% if request.GET.raised_status == 'Open' %} selected {% endif %}>Open</option>
+        <option value="In Progress" {% if request.GET.raised_status == 'In Progress' %} selected {% endif %}>In Progress</option>
+        <option value="Testing" {% if request.GET.raised_status == 'Testing' %} selected {% endif %}>Testing</option>
+        <option value="Closed" {% if request.GET.raised_status == 'Closed' %} selected {% endif %}>Closed</option>
+        <option value="Held" {% if request.GET.raised_status == 'Held' %} selected {% endif %}>Held</option>
+    </select>
+    
+    <label for="raised_priority_filter">Priority:</label>
+    <select id="raised_priority_filter" name="raised_priority">
+        <option value="" {% if not request.GET.raised_priority %} selected {% endif %}>All</option>
+        <option value="High" {% if request.GET.raised_priority == 'High' %} selected {% endif %}>High</option>
+        <option value="Medium" {% if request.GET.raised_priority == 'Medium' %} selected {% endif %}>Medium</option>
+        <option value="Low" {% if request.GET.raised_priority == 'Low' %} selected {% endif %}>Low</option>
+    </select>
+    
+    <label for="created_from_input">Created From:</label>
+    <input type="date" id="created_from_input" name="created_from" value="{{ request.GET.created_from }}">
+    
+    <label for="updated_from_input">Updated From:</label>
+    <input type="date" id="updated_from_input" name="updated_from" value="{{ request.GET.updated_from }}">
+    
+    <label for="raised_project_filter">Project:</label>
+    <select id="raised_project_filter" name="raised_project">
+        <option value="" {% if not request.GET.raised_project %} selected {% endif %}>All</option>
+        <option value="Electronic Purchase App" {% if request.GET.raised_project == 'Electronic Purchase App' %} selected {% endif %}>Electronic Purchase App</option>
+        <option value="E-Reader App" {% if request.GET.raised_project == 'E-Reader App' %} selected {% endif %}>E-Reader App</option>
+        <option value="Resume Builder" {% if request.GET.raised_project == 'Resume Builder' %} selected {% endif %}>Resume Builder</option>
+        <option value="Video Editor" {% if request.GET.raised_project == 'Video Editor' %} selected {% endif %}>Video Editor</option>
+    </select><br>
+    
+    <label for="raised_nature_of_bug_filter">Nature of Bug:</label>
+    <select id="raised_nature_of_bug_filter" name="raised_nature_of_bug">
+        <option value="" {% if not request.GET.raised_nature_of_bug %} selected {% endif %}>All</option>
+        <option value="UI/UX" {% if request.GET.raised_nature_of_bug == 'UI/UX' %} selected {% endif %}>UI/UX</option>
+        <option value="Browser" {% if request.GET.raised_nature_of_bug == 'Browser' %} selected {% endif %}>Browser</option>
+        <option value="Internet" {% if request.GET.raised_nature_of_bug == 'Internet' %} selected {% endif %}>Internet</option>
+        <option value="Performance" {% if request.GET.raised_nature_of_bug == 'Performance' %} selected {% endif %}>Performance</option>
+        <option value="Crashing" {% if request.GET.raised_nature_of_bug == 'Crashing' %} selected {% endif %}>Crashing</option>
+        <option value="Not Sure" {% if request.GET.raised_nature_of_bug == 'Not Sure' %} selected {% endif %}>Not Sure</option>
+    </select>
+    
+    <button type="submit">Search</button>
+</form>
+
+<h4>Bugs Raised by {{ user.username }}</h4>
+<table class="bug-table" border="1">
+    <thead>
+        <tr>
+            <th>Bug ID</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Assigned To</th>
+            <th>Priority</th>
+            <th>Project</th>
+            <th>Nature of Bug</th>
+            <th>Created At</th>
+            <th>Updated At</th>
+
+        </tr>
+    </thead>
+    <tbody>
+        {% for bug in raised_bugs %}
+            <tr>
+                <td>{{ bug.id }}</td>
+                <td><a href="{% url 'bug_detail' bug.id %}">{{ bug.title }}</a></td>
+                <td>{{ bug.status }}</td>
+                <td>{{ bug.assigned_to }}</td>
+                <td>{{ bug.priority }}</td>
+                <td>{{ bug.nature_of_bug }}</td>
+                <td>{{ bug.project }}</td>
+                <td>{{ bug.created_at }}</td>
+                <td>{{ bug.updated_at }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="5">No bugs raised yet.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if request.user.is_staff or request.user.is_developer or request.user.is_tester %}
+<form method="get">
+    <h4>Assigned Bugs:</h4>
+    <label for="assigned_search_input">Search:</label>
+    <input type="text" id="assigned_search_input" name="assigned_search_query" placeholder="Search by title/Desc/ID" value="{{ request.GET.assigned_search_query }}">
+    
+    <label for="assigned_status_filter">Status:</label>
+    <select id="assigned_status_filter" name="assigned_status">
+        <option value="" {% if not request.GET.assigned_status %} selected {% endif %}>All</option>
+        <option value="Open" {% if request.GET.assigned_status == 'Open' %} selected {% endif %}>Open</option>
+        <option value="In Progress" {% if request.GET.assigned_status == 'In Progress' %} selected {% endif %}>In Progress</option>
+        <option value="Testing" {% if request.GET.assigned_status == 'Testing' %} selected {% endif %}>Testing</option>
+        <option value="Closed" {% if request.GET.assigned_status == 'Closed' %} selected {% endif %}>Closed</option>
+        <option value="Held" {% if request.GET.assigned_status == 'Held' %} selected {% endif %}>Held</option>
+    </select>
+    
+    <label for="assigned_priority_filter">Priority:</label>
+    <select id="assigned_priority_filter" name="assigned_priority">
+        <option value="" {% if not request.GET.assigned_priority %} selected {% endif %}>All</option>
+        <option value="High" {% if request.GET.assigned_priority == 'High' %} selected {% endif %}>High</option>
+        <option value="Medium" {% if request.GET.assigned_priority == 'Medium' %} selected {% endif %}>Medium</option>
+        <option value="Low" {% if request.GET.assigned_priority == 'Low' %} selected {% endif %}>Low</option>
+    </select>
+    
+    <label for="assigned_created_from_input">Created From:</label>
+    <input type="date" id="assigned_created_from_input" name="assigned_created_from" value="{{ request.GET.assigned_created_from }}">
+    
+    <label for="assigned_updated_from_input">Updated From:</label>
+    <input type="date" id="assigned_updated_from_input" name="assigned_updated_from" value="{{ request.GET.assigned_updated_from }}">
+    
+    <label for="assigned_project_filter">Project:</label>
+    <select id="assigned_project_filter" name="assigned_project">
+        <option value="" {% if not request.GET.assigned_project %} selected {% endif %}>All</option>
+        <option value="Electronic Purchase App" {% if request.GET.assigned_project == 'Electronic Purchase App' %} selected {% endif %}>Electronic Purchase App</option>
+        <option value="E-Reader App" {% if request.GET.assigned_project == 'E-Reader App' %} selected {% endif %}>E-Reader App</option>
+        <option value="Resume Builder" {% if request.GET.assigned_project == 'Resume Builder' %} selected {% endif %}>Resume Builder</option>
+        <option value="Video Editor" {% if request.GET.assigned_project == 'Video Editor' %} selected {% endif %}>Video Editor</option>
+    </select><br>
+    
+    <label for="assigned_nature_of_bug_filter">Nature of Bug:</label>
+    <select id="assigned_nature_of_bug_filter" name="assigned_nature_of_bug">
+        <option value="" {% if not request.GET.assigned_nature_of_bug %} selected {% endif %}>All</option>
+        <option value="UI/UX" {% if request.GET.assigned_nature_of_bug == 'UI/UX' %} selected {% endif %}>UI/UX</option>
+        <option value="Browser" {% if request.GET.assigned_nature_of_bug == 'Browser' %} selected {% endif %}>Browser</option>
+        <option value="Internet" {% if request.GET.assigned_nature_of_bug == 'Internet' %} selected {% endif %}>Internet</option>
+        <option value="Performance" {% if request.GET.assigned_nature_of_bug == 'Performance' %} selected {% endif %}>Performance</option>
+        <option value="Crashing" {% if request.GET.assigned_nature_of_bug == 'Crashing' %} selected {% endif %}>Crashing</option>
+        <option value="Not Sure" {% if request.GET.assigned_nature_of_bug == 'Not Sure' %} selected {% endif %}>Not Sure</option>
+    </select>
+    
+    <button type="submit">Search</button>
+</form>
+
+<h4>Assigned Bugs:</h4>
+<table class="bug-table" border="1">
+    <thead>
+        <tr>
+            <th>Bug ID</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Assigned To</th>
+            <th>Priority</th>
+            <th>Project</th>
+            <th>Nature of Bug</th>
+            <th>Created At</th>
+            <th>Updated At</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for bug in assigned_bugs %}
+            <tr>
+                <td>{{ bug.id }}</td>
+                <td><a href="{% url 'bug_detail' bug.id %}">{{ bug.title }}</a></td>
+                <td>{{ bug.status }}</td>
+                <td>{{ bug.assigned_to }}</td>
+                <td>{{ bug.priority }}</td>
+                <td>{{ bug.nature_of_bug }}</td>
+                <td>{{ bug.project }}</td>
+                <td>{{ bug.created_at }}</td>
+                <td>{{ bug.updated_at }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="5">No bugs assigned yet.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endif %}
+</body>
+</html>
+{% endblock %}

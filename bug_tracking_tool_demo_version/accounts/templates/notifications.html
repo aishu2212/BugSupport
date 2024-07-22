@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .notification-item {
+        background-color: #f0f0f0;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+
+    .notification-item.unread {
+        background-color: #ffc107; /* Change to your preferred color for unread notifications */
+        font-weight: bold;
+    }
+
+    #notifications {
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+</style>
+
+<div id="notifications">
+    <h3>Notifications</h3>
+    {% for notification in notifications %}
+        <div class="notification-item">
+            <p>{{ notification.timestamp }}: {{ notification.message }}</p>
+        </div>
+    {% empty %}
+        <p>No notifications found.</p>
+    {% endfor %}
+</div>
+{% endblock %}

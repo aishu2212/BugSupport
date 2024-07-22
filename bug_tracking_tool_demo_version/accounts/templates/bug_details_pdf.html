@@ -1,0 +1,62 @@
+{% block title %}Bug Details{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bug Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .bug-details {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        .bug-details p {
+            margin: 5px 0;
+        }
+        .bug-details img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bug Details Bug ID: {{bug.id}} </h1>
+    <div class="bug-details">
+        <p><strong>Title:</strong> {{ bug.title }}</p>
+        <p><strong>Description:</strong> {{ bug.description }}</p>
+        <p><strong>Status:</strong> {{ bug.status }}</p>
+        <p><strong>Priority:</strong> {{ bug.priority }}</p>
+        <p><strong>Assigned To:</strong> {{ bug.assigned_to }}</p>
+        <p><strong>Project:</strong> {{ bug.project }}</p>
+        <p><strong>Raised By:</strong> {{ bug.raised_by }}</p>
+        <p><strong>Nature of Bug:</strong> {{ bug.nature_of_bug }}</p>
+        <p><strong>Expected Result:</strong> {{ bug.expected_result }}</p>
+        <p><strong>Actual Result:</strong> {{ bug.actual_result }}</p>
+        <p><strong>Frequency:</strong> {{ bug.frequency }}</p>
+        <p><strong>Steps Followed:</strong> {{ bug.steps_followed }}</p>
+        <p><strong>Always/Sometimes:</strong> {{ bug.always_sometimes }}</p>
+        <p><strong>Browser:</strong> {{ bug.browser }}</p>
+        <p><strong>OS:</strong> {{ bug.os }}</p>
+        {% if bug.images_log_files %}
+        <p><strong>Image/File:</strong></p>
+        <img src="C:/Users/Aishwarya/Documents/Notif/BugTool/bug_tracking_tool_2103_Version/bug_tracking_tool{{ bug.images_log_files.url }}">
+        {% else %}
+        <p>No image available</p>
+        {% endif %}
+        <p><strong>Additional Information:</strong> {{ bug.additional_information }}</p>
+        <p><strong>Comments:</strong> {{ bug.comments }}</p>
+    </div>
+</body>
+</html>
+{% endblock %}
