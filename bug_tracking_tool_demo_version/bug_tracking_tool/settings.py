@@ -29,7 +29,7 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'django.contrib.staticfiles',
 ]
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
 AUTH_USER_MODEL = 'accounts.CustomUser'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
