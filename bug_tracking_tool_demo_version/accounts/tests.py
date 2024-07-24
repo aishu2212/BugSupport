@@ -129,7 +129,7 @@ def test_bug_detail_post(client, bug, user1, user_assign_auto):
 
     updated_bug = Bug.objects.get(id=bug.id)
     assert updated_bug.title == 'Updated Bug Title'
-    assert updated_bug.description == 'Updated description'
+    assert updated_bug.description == 'Updated bug description'
 
 
 @pytest.mark.django_db
